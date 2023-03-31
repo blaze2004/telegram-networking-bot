@@ -9,7 +9,7 @@ const environmentVariables = {
     port: parseInt(process.env.PORT || "8000"),
     telegramBotAccessToken: process.env.TELEGRAM_BOT_ACCESS_TOKEN as string,
     databaseConnectionString: process.env.DATABASE_URL as string,
-    domain: process.env.DOMAIN,
+    domain: process.env.DOMAIN as string,
 }
 
 export default environmentVariables;
