@@ -60,19 +60,19 @@ const getResponse = async (message: string, ctx: SessionContext): Promise<BotRes
     const context = getContext(message);
 
     switch (context) {
-        case "greeting": return getGreetingsResponse(ctx.session.user.name || "There");
-        case "appreciation": return replies.appreciationMessage;
-        case "stop": return replies.chatLaterMessage;
-        case "update_interests": {
-            const newProcess = await ProcessManager.createProcess("user-interests", ctx);
-            if (newProcess.welcomeMessage != null) {
-                return newProcess.welcomeMessage;
-            }
-            return replies.welcomeMessage;
+    case "greeting": return getGreetingsResponse(ctx.session.user.name || "There");
+    case "appreciation": return replies.appreciationMessage;
+    case "stop": return replies.chatLaterMessage;
+    case "update_interests": {
+        const newProcess = await ProcessManager.createProcess("user-interests", ctx);
+        if (newProcess.welcomeMessage != null) {
+            return newProcess.welcomeMessage;
         }
-        case "find_connection": return await findConnection(ctx);
-        case "show_requests": return await showRequests(ctx);
-        default: return replies.invalidInputMessage;
+        return replies.welcomeMessage;
+    }
+    case "find_connection": return await findConnection(ctx);
+    case "show_requests": return await showRequests(ctx);
+    default: return replies.invalidInputMessage;
     }
 }
 
