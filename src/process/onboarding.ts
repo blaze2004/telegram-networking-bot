@@ -33,7 +33,7 @@ class UserOnboarding extends Process {
     }
 
     async isValidLinkedInLink(linkedinLink: string): Promise<boolean> {
-        const regex = /^https?:\/\/(?:www\.)?linkedin\.com\/[\w-]+\/?$/i;
+        const regex = /^https?(?::\/\/)?(?:www\.)?linkedin\.com\/(?:\w+\/)?(?:in|pub|company)\/[\w-]+\/?$/i
         if (regex.test(linkedinLink)) {
             const existingUser = await prisma.user.findFirst({
                 where: {
