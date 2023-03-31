@@ -3,7 +3,7 @@ import Process from ".";
 import replies from "../constants/replies";
 import { BotResponseMessage } from "../types";
 import { SessionContext } from "../types/telegram";
-import { escapeMarkdownV2 } from "../utils/messageBuilder";
+import { escapeMarkdownV2, toCapitalCase, toSentenceCase } from "../utils/messageBuilder";
 import prisma from "../utils/prismaClient";
 import ProcessManager from "../utils/processManager";
 
@@ -33,7 +33,7 @@ class UserOnboarding extends Process {
     }
 
     async isValidLinkedInLink(linkedinLink: string): Promise<boolean> {
-        const regex = /^https?:\/\/(?:www\.)?linkedin\.com\/(?:\w+\/)?(?:in|pub|company)\/[\w-]+\/?$/i;
+        const regex = /^https?:\/\/(?:www\.)?linkedin\.com\/[\w-]+\/?$/i;
         if (regex.test(linkedinLink)) {
             const existingUser = await prisma.user.findFirst({
                 where: {
@@ -56,8 +56,8 @@ class UserOnboarding extends Process {
             if (this.questions[0].answer && this.questions[1].answer && this.questions[2].answer) {
                 const newUser = await prisma.user.create({
                     data: {
-                        name: this.questions[0].answer,
-                        bio: this.questions[1].answer,
+                        name: toCapitalCase(this.questions[0].answer),
+                        bio: toSentenceCase(this.questions[1].answer),
                         telegramUsername: ctx.session.user.username,
                         linkedin: this.questions[2].answer,
                         interests: [],
@@ -67,7 +67,7 @@ class UserOnboarding extends Process {
                     }
                 });
 
-                ctx.session.user.name = this.questions[0].answer;
+                ctx.session.user.name = toCapitalCase(this.questions[0].answer);
             }
 
             const processEndMessage = await super.postProcessAction(ctx);

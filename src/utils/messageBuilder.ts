@@ -6,6 +6,12 @@ export const toCapitalCase = (str: string): string => {
     });
 }
 
+export const toSentenceCase = (str: string): string => {
+    return str.toLowerCase().replace(/(^|\s)\S/g, (firstLetter) => {
+        return firstLetter.toUpperCase();
+    });
+}
+
 export const escapeMarkdownV2 = (text: string): string => {
     const specialChars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!'];
     let escapedText = '';

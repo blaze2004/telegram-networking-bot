@@ -55,18 +55,9 @@ export const chatWithConnection = async (ctx: SessionContext) => {
                     }
                 });
 
-                return await ctx.reply('You can now chat directly with your connection on telegram.', {
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                {
-                                    text: "Chat Now",
-                                    url: `https://t.me/${connection.telegramUsername}`
-                                }
-                            ]
-                        ]
-                    }
-                });
+                return await ctx.reply(escapeMarkdownV2('You can now chat directly with your connection on telegram.') + `\n\n[Chat Now](tg://user?id=${connection.chatId})`,
+                    { parse_mode: "MarkdownV2" }
+                );
             }
 
             return await ctx.reply(...replies.serverErrorMessage);
@@ -97,7 +88,7 @@ export const ignoreConnection = async (ctx: SessionContext) => {
             if (connectionRequest) {
                 const currentUser = connectionRequest.receiver;
                 currentUser.rejected.push(connectionRequestId);
-                
+
                 await prisma.user.update({
                     where: {
                         id: currentUser.id
