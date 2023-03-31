@@ -1,18 +1,18 @@
+import { randomUUID } from "crypto";
 import { Telegraf, session } from "telegraf";
 import { message } from 'telegraf/filters';
-import findConnection from "./actions/conversation/connections";
 import getMessage from "./actions/conversation/getMessage";
 import { SessionContext } from "./types/telegram";
 import environmentVariables from "./utils/config";
 
-const bot=new Telegraf<SessionContext>(environmentVariables.telegramBotAccessToken);
+const bot = new Telegraf<SessionContext>(environmentVariables.telegramBotAccessToken);
 bot.use(session({ defaultSession: () => ({ user: {} }) }));
 
 bot.use((ctx, next) => {
-    if (ctx.session.user.username===undefined) {
-        ctx.session.user={
+    if (ctx.session.user.username === undefined) {
+        ctx.session.user = {
             name: ctx.message?.from.first_name,
-            username: ctx.message?.from.username,
+            username: ctx.message?.from.username || randomUUID(),
             processId: null,
         }
     }
@@ -28,21 +28,23 @@ bot.on(message("text"), async (ctx) => {
     await getMessage(ctx.message.text, ctx);
 });
 
-bot.action("find_connection", findConnection);
-
-bot.action("show_requests", async (ctx) => {
-
+bot.action("find_connection", async (ctx) => {
+    await getMessage("find_connection", ctx);
 });
+
+// bot.action("show_requests", async (ctx) => {
+
+// });
 
 bot.action("update_interests", async (ctx) => {
     await getMessage("update_interests", ctx);
 });
 
-bot.action("send_request", async (ctx) => {
+// bot.action("send_request", async (ctx) => {
 
-});
+// });
 
-if (environmentVariables.nodeEnv==="production") {
+if (environmentVariables.nodeEnv === "production") {
     bot.launch({
         webhook: {
             domain: environmentVariables.domain,

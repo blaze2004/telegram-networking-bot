@@ -38,7 +38,7 @@ class UserInterests extends Process {
 
             await super.postProcessAction(ctx);
 
-            return [];
+            return [replies.interestsUpdatedMessage];
         } catch (error: any) {
             console.log("Error updating interests", error);
             return [replies.serverErrorMessage];
