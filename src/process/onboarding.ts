@@ -58,6 +58,7 @@ class UserOnboarding extends Process {
                     data: {
                         name: this.questions[0].answer,
                         bio: this.questions[1].answer,
+                        telegramUsername: ctx.session.user.username,
                         linkedin: this.questions[2].answer,
                         interests: [],
                         viewed: [],

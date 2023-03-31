@@ -17,6 +17,7 @@
     "dependencies": {
         "@prisma/client": "^4.12.0",
         "@telegraf/session": "^2.0.0-beta.6",
+        "callback-data": "^1.0.2",
         "dotenv": "^16.0.3",
         "telegraf": "^4.12.2",
         "ts-node": "^10.9.1"

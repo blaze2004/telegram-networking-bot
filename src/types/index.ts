@@ -9,7 +9,7 @@ export interface Question {
 
 export interface User {
     name?: string;
-    username?: string;
+    username: string;
     processId: string|null;
 }
 

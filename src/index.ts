@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { Telegraf, session } from "telegraf";
 import { message } from 'telegraf/filters';
+import { chatWithConnection, ignoreConnection, sendConnectionRequest } from "./actions/conversation/connections";
 import getMessage from "./actions/conversation/getMessage";
 import { SessionContext } from "./types/telegram";
 import environmentVariables from "./utils/config";
@@ -32,17 +33,19 @@ bot.action("find_connection", async (ctx) => {
     await getMessage("find_connection", ctx);
 });
 
-// bot.action("show_requests", async (ctx) => {
-
-// });
+bot.action("show_requests", async (ctx) => {
+    await getMessage("show_requests", ctx);
+});
 
 bot.action("update_interests", async (ctx) => {
     await getMessage("update_interests", ctx);
 });
 
-// bot.action("send_request", async (ctx) => {
+bot.action(/^chat_with_connection_id_.*$/, chatWithConnection);
 
-// });
+bot.action(/^send_request_id_.*$/, sendConnectionRequest);
+
+bot.action(/^ignore_connection_id_.*$/, ignoreConnection);
 
 if (environmentVariables.nodeEnv === "production") {
     bot.launch({

@@ -1,16 +1,176 @@
 import { User } from "@prisma/client";
+import { CallbackQuery } from "telegraf/types";
 import replies, { connectionActionMarkup } from "../../constants/replies";
 import { BotResponseMessage } from "../../types";
 import { SessionContext } from "../../types/telegram";
 import { escapeMarkdownV2 } from "../../utils/messageBuilder";
 import prisma from "../../utils/prismaClient";
 
+export const chatWithConnection = async (ctx: SessionContext) => {
+    const callbackData = (ctx.callbackQuery as CallbackQuery.DataQuery).data;
+    const regex = /^chat_with_connection_id_(.*)$/;
+    const match = callbackData.match(regex);
+    const connectionRequestId = match ? match[1] : null;
+
+    if (connectionRequestId) {
+        try {
+
+            const connectionRequest = await prisma.requests.findUnique({
+                where: {
+                    id: connectionRequestId
+                },
+                include: {
+                    sender: true,
+                    receiver: true,
+                }
+            });
+
+            if (connectionRequest) {
+                const connection = connectionRequest.sender;
+                const currentUser = connectionRequest.receiver;
+                currentUser.connections.push(connection.id);
+                connection.connections.push(currentUser.id);
+
+                await prisma.user.update({
+                    where: {
+                        id: currentUser.id
+                    },
+                    data: {
+                        connections: currentUser.connections
+                    }
+                });
+
+                await prisma.user.update({
+                    where: {
+                        id: connection.id
+                    },
+                    data: {
+                        connections: connection.connections
+                    }
+                });
+
+                await prisma.requests.delete({
+                    where: {
+                        id: connectionRequest.id
+                    }
+                });
+
+                return await ctx.reply('You can now chat directly with your connection on telegram.', {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: "Chat Now",
+                                    url: `https://t.me/${connection.telegramUsername}`
+                                }
+                            ]
+                        ]
+                    }
+                });
+            }
+
+            return await ctx.reply(...replies.serverErrorMessage);
+        } catch (error: any) {
+            console.log("Error accepting connection", error);
+            return await ctx.reply(...replies.serverErrorMessage);
+        }
+    }
+};
+
+export const ignoreConnection = async (ctx: SessionContext) => {
+    const callbackData = (ctx.callbackQuery as CallbackQuery.DataQuery).data;
+    const regex = /^ignore_connection_id_(.*)$/;
+    const match = callbackData.match(regex);
+    const connectionRequestId = match ? match[1] : null;
+
+    if (connectionRequestId) {
+        try {
+            const connectionRequest = await prisma.requests.findUnique({
+                where: {
+                    id: connectionRequestId
+                },
+                include: {
+                    receiver: true,
+                }
+            });
+
+            if (connectionRequest) {
+                const currentUser = connectionRequest.receiver;
+                currentUser.rejected.push(connectionRequestId);
+                
+                await prisma.user.update({
+                    where: {
+                        id: currentUser.id
+                    },
+                    data: {
+                        rejected: currentUser.rejected
+                    }
+                });
+
+                await prisma.requests.delete({
+                    where: {
+                        id: connectionRequest.id
+                    }
+                });
+
+                return await ctx.reply(...replies.requestIgnoredMessage);
+            }
+
+            return await ctx.reply(...replies.serverErrorMessage);
+        } catch (error: any) {
+            console.log("Error ignoring connection request", error);
+            return await ctx.reply(...replies.serverErrorMessage);
+        }
+    }
+};
+
+export const sendConnectionRequest = async (ctx: SessionContext) => {
+    const callbackData = (ctx.callbackQuery as CallbackQuery.DataQuery).data;
+    const regex = /^send_request_id_(.*)$/;
+    const match = callbackData.match(regex);
+    const connectionId = match ? match[1] : null;
+    console.log(callbackData);
+    console.log(connectionId)
+
+    if (connectionId) {
+        try {
+            const connection = await prisma.user.findUnique({
+                where: {
+                    id: connectionId
+                }
+            });
+
+            const currentUser = await prisma.user.findUnique({
+                where: {
+                    chatId: ctx.chat?.id
+                }
+            });
+
+            if (connection && currentUser) {
+                await prisma.requests.create({
+                    data: {
+                        receiverId: connection.id,
+                        senderId: currentUser.id
+                    }
+                });
+
+                return await ctx.reply(...replies.connectionRequestSentMessage);
+            }
+
+            return await ctx.reply(...replies.serverErrorMessage);
+        } catch (error: any) {
+            console.log("Error sending connection request", error);
+            return await ctx.reply(...replies.serverErrorMessage);
+        }
+    }
+};
+
 const findHighlyMatchedUser = async (currentUser: User): Promise<User> => {
     // Find users who have at least one matching interest and are not in the rejected or viewed arrays
     const matchedUsers = await prisma.user.findMany({
         where: {
             id: {
-                notIn: [...(currentUser.rejected), ...(currentUser.viewed), currentUser.id],
+                notIn: [...(currentUser.rejected), ...(currentUser.viewed), ...(currentUser.connections), currentUser.id],
             },
             interests: {
                 hasSome: currentUser.interests,
@@ -34,7 +194,7 @@ const findHighlyMatchedUser = async (currentUser: User): Promise<User> => {
     const bestConnection = sortedUsers[0] ?? await prisma.user.findFirst({
         where: {
             id: {
-                notIn: [...(currentUser.rejected), ...(currentUser.viewed), currentUser.id],
+                notIn: [...(currentUser.rejected), ...(currentUser.viewed), ...(currentUser.connections), currentUser.id],
             },
         },
     });
@@ -68,7 +228,7 @@ export const findConnection = async (ctx: SessionContext): Promise<BotResponseMe
             });
             return [
                 `${escapeMarkdownV2("I found a potential connection for you😁.\n")}\n*Name:* ${escapeMarkdownV2(connection.name)}\n*About:* ${escapeMarkdownV2(connection.bio)}\n*LinkedIn:* ${escapeMarkdownV2(connection.linkedin)}\n*Interests:* ${escapeMarkdownV2(connection.interests.join(", "))}\n\nWhat would you like to do next?`,
-                connectionActionMarkup];
+                connectionActionMarkup(connection.id)];
         }
 
         return replies.serverErrorMessage;

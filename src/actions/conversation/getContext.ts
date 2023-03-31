@@ -3,6 +3,7 @@ import { BotResponseMessage } from "../../types";
 import { SessionContext } from "../../types/telegram";
 import ProcessManager from "../../utils/processManager";
 import findConnection from "./connections";
+import showRequests from "./requests";
 
 const getContext = (message: string): string | null => {
     const greetingRegexes = [
@@ -24,12 +25,18 @@ const getContext = (message: string): string | null => {
 
     const updateInterestsRegex = /^(update[_ ])?interests$/i;
 
+    const showRequestsRegex = /^(show|display|view|see)\s*(my)?\s*(connection )?(requests|invitations|pending)?$/i;
+
     if (message === "update_interests" || updateInterestsRegex.test(message)) {
         return "update_interests";
     }
 
     if (message === "find_connection" || connectionSearchRegex.test(message)) {
         return "find_connection";
+    }
+
+    if (message === "show_requests" || showRequestsRegex.test(message)) {
+        return "show_requests";
     }
 
     for (const regex of greetingRegexes) {
@@ -64,6 +71,7 @@ const getResponse = async (message: string, ctx: SessionContext): Promise<BotRes
             return replies.welcomeMessage;
         }
         case "find_connection": return await findConnection(ctx);
+        case "show_requests": return await showRequests(ctx);
         default: return replies.invalidInputMessage;
     }
 }
