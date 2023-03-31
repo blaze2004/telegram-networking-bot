@@ -2,18 +2,18 @@ import { ForceReply, InlineKeyboardMarkup, ParseMode, ReplyKeyboardMarkup, Reply
 
 export interface Question {
     question: BotResponseMessage;
-    answer: string | null;
+    answer: string|null;
     errorMsg?: BotResponseMessage;
-    validateAnswer: (answer: string) => Promise<boolean> | boolean;
+    validateAnswer: (answer: string) => Promise<boolean>|boolean;
 }
 
 export interface User {
     name?: string;
-    username: string;
-    processId: string | null;
+    username?: string;
+    processId: string|null;
 }
 
-export type BotResponseMessage = [
+export type BotResponseMessage=[
     string,
     {
         reply_markup?: InlineKeyboardMarkup|ReplyKeyboardMarkup|ReplyKeyboardRemove|ForceReply;

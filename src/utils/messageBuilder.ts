@@ -29,9 +29,3 @@ export const telegramButtonMessage = (message: string, inline_keyboard: InlineKe
         }
     }
 }
-
-export const formatDate = (isoDate: string): string => {
-    const date = new Date(isoDate);
-    const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-    return date.toLocaleDateString('en-US', options);
-}
