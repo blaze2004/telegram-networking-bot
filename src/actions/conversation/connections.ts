@@ -55,9 +55,20 @@ export const chatWithConnection = async (ctx: SessionContext) => {
                     }
                 });
 
-                return await ctx.reply(escapeMarkdownV2('You can now chat directly with your connection on telegram.') + `\n\n[Chat Now](tg://user?id=${connection.chatId})`,
-                    { parse_mode: "MarkdownV2" }
-                );
+                const chatUrl = connection.telegramUsername ? `https://t.me/${connection.telegramUsername}` : `tg://user?id=${connection.chatId}`;
+
+                return await ctx.reply('You can now chat directly with your connection on telegram.', {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: "Chat Now",
+                                    url: chatUrl
+                                }
+                            ]
+                        ]
+                    }
+                });
             }
 
             return await ctx.reply(...replies.serverErrorMessage);

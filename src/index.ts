@@ -13,7 +13,7 @@ bot.use((ctx, next) => {
     if (ctx.session.user.username === undefined) {
         ctx.session.user = {
             name: ctx.message?.from.first_name,
-            username: ctx.message?.from.username || randomUUID(),
+            username: ctx.message?.from.username,
             processId: null,
         }
     }
